@@ -1,0 +1,22 @@
+# Local builds and generated outputs
+*.exe
+*.dll
+*.o
+*.obj
+*.a
+*.lib
+*.pdb
+*.out
+*.hed
+*.hds
+*.cbc
+*.lst
+*.log
+*.tmp
+__pycache__/
+*.pyc
+obj_temp/
+build/
+reference/
+test_dynamic/
+# Client data/models are deliberately not included.
