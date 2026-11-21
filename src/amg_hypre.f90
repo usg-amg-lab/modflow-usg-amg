@@ -1,3 +1,7 @@
+! MODFLOW-USG Serial AMG - hypre integration
+! Copyright (c) 2026 Jiří Beránek
+! SPDX-License-Identifier: MIT
+! See licenses/PROJECT_ADDITIONS_MIT.txt
 ! Thin ISO_C_BINDING interface. No numerical operations or matrix changes.
 subroutine amg_hypre_solve(amat,rhs,soln,ia,ja,neqs,nja,icnvg, &
                            in_iter,iter1,hiclose,iout)

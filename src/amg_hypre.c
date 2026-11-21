@@ -1,3 +1,8 @@
+/* MODFLOW-USG Serial AMG - hypre integration
+ * Copyright (c) 2026 Jiří Beránek
+ * SPDX-License-Identifier: MIT
+ * See licenses/PROJECT_ADDITIONS_MIT.txt
+ */
 /* Experimental Windows UCRT64: HYPRE 2.33.0 serial configuration.
  * C ABI uses 32-bit Fortran indices, double precision values.
  * Building with -DAMG_TEST_STUB provides an intentional fail-closed stub

@@ -215,6 +215,8 @@ C4b-------for pcgu solver
         IF ( IPCGUM.EQ.1 ) ISYMFLG = 1
       ELSEIF ( Linmeth==3 )Then
 C4c-------HYPRE GMRES + BOOMERAMG (EXPERIMENTAL).
+C         AMG integration (c) 2026 Jiri Beranek; MIT.
+C         See licenses/PROJECT_ADDITIONS_MIT.txt.
 C         The HYPRE bridge expects the unsymmetric CSR matrix.
         WRITE(IOUT,*) '***EXPERIMENTAL HYPRE GMRES + AMG***'
         WRITE(IOUT,*) '***NO PCGU PARAMETERS READ***'
@@ -640,6 +642,7 @@ C
      &               ICNVG,KSTP,KPER,MXITER,KITER,IN_ITER,IOUT)
         ELSEIF(LINMETH.EQ.3)THEN
 C2C---------CALL REAL HYPRE BRIDGE, NOT PCGU.
+C           AMG integration (c) 2026 Jiri Beranek; MIT.
           CALL AMG_HYPRE_SOLVE(AMAT,RHS,SOLN,IA,JA,NEQS,NJA,
      &         ICNVG,IN_ITER,ITER1,HICLOSE,IOUT)
         ENDIF

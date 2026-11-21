@@ -1,0 +1,41 @@
+[
+  {
+    "test": "01A_nestedgrid_nognc",
+    "exit_code": 0,
+    "normal_termination": true,
+    "head_output_found": true,
+    "records": 1,
+    "compared": 121,
+    "excluded": 0,
+    "mae_m": 0.0,
+    "rmse_m": 0.0,
+    "maxdiff_m": 0.0,
+    "pass": true
+  },
+  {
+    "test": "01B_nestedgrid_gnc",
+    "exit_code": 0,
+    "normal_termination": true,
+    "head_output_found": true,
+    "records": 1,
+    "compared": 121,
+    "excluded": 0,
+    "mae_m": 0.0,
+    "rmse_m": 0.0,
+    "maxdiff_m": 0.0,
+    "pass": true
+  },
+  {
+    "test": "03_conduit_confined",
+    "exit_code": 0,
+    "normal_termination": true,
+    "head_output_found": true,
+    "records": 2,
+    "compared": 20000,
+    "excluded": 0,
+    "mae_m": 9.012222290039063e-09,
+    "rmse_m": 1.1621530157998981e-07,
+    "maxdiff_m": 1.9073486328125e-06,
+    "pass": true
+  }
+]
