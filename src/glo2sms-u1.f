@@ -25,6 +25,8 @@ csp      USE GNC2MODULE, ONLY:ISYMGNC2
 !     ------------------------------------------------------------------
       INTEGER lloc, istart, istop, i, n, K, IFDPARAM, MXVL, NPP
       INTEGER IPCGUM
+      INTEGER AMG_IOS, AMG_IOS2
+      CHARACTER(LEN=200) AMG_LINE
       INTEGER :: NSTRT, NNDLAY
       CHARACTER(LEN=200) line
       REAL r, HCLOSEdum, HICLOSEdum,  thetadum, amomentdum,yo
@@ -221,6 +223,42 @@ C         The HYPRE bridge expects the unsymmetric CSR matrix.
         WRITE(IOUT,*) '***EXPERIMENTAL HYPRE GMRES + AMG***'
         WRITE(IOUT,*) '***NO PCGU PARAMETERS READ***'
         ISYMFLG = 0
+C       Optional AMG line: MPI_PROCESSES GMRES_RTOL.
+C       EOF means legacy SMS input with default parameters.
+        AMG_MPI_PROCESSES = 1
+        AMG_GMRES_RTOL = 1D-9
+  351   CONTINUE
+        READ(IN,'(A)',IOSTAT=AMG_IOS) AMG_LINE
+        IF (AMG_IOS.EQ.0) THEN
+          AMG_LINE = ADJUSTL(AMG_LINE)
+          IF (AMG_LINE.EQ.' ' .OR.
+     &        AMG_LINE(1:1).EQ.'#' .OR.
+     &        AMG_LINE(1:1).EQ.'!') GOTO 351
+          IF (AMG_LINE(1:4).EQ.'AMG ') THEN
+            READ(AMG_LINE(5:),*,IOSTAT=AMG_IOS2)
+     &        AMG_MPI_PROCESSES, AMG_GMRES_RTOL
+            IF (AMG_IOS2.NE.0) THEN
+              WRITE(IOUT,*) 'ERROR READING AMG SMS PARAMETERS'
+              CALL USTOP(' ')
+            ENDIF
+          ELSE
+C           Legacy solver parameter line; continue searching.
+            WRITE(IOUT,*) 'AMG: LEGACY SMS LINE IGNORED'
+            GOTO 351
+          ENDIF
+        ELSEIF (AMG_IOS.GT.0) THEN
+          WRITE(IOUT,*) 'ERROR READING AMG SMS INPUT'
+          CALL USTOP(' ')
+        ENDIF
+        IF (AMG_MPI_PROCESSES.LT.1 .OR.
+     &      AMG_MPI_PROCESSES.GT.256 .OR.
+     &      .NOT.(AMG_GMRES_RTOL.GE.1D-15 .AND.
+     &            AMG_GMRES_RTOL.LE.1D-2)) THEN
+          WRITE(IOUT,*) 'INVALID AMG MPI COUNT OR GMRES RTOL'
+          CALL USTOP(' ')
+        ENDIF
+        WRITE(IOUT,*) 'AMG MPI PROCESSES = ',AMG_MPI_PROCESSES
+        WRITE(IOUT,*) 'AMG GMRES RTOL   = ',AMG_GMRES_RTOL
       ELSE
 C4d-----Incorrect linear solver flag
         Write(iout,*) '***Incorrect value for Linear solution method ',

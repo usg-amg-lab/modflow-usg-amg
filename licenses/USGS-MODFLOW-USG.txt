@@ -1,0 +1,10 @@
+MODFLOW-USG 1.5
+
+The executable includes the U.S. Geological Survey program MODFLOW-USG,
+version 1.5.00 (27 February 2019). That program is a work of the
+United States Government. This distribution does not claim a copyright
+in the USGS source and does not relicense it.
+
+The MIT license in PROJECT_ADDITIONS_MIT.txt covers only the AMG/MPI
+integration added to that program. It does not replace the terms that
+apply to the USGS code.

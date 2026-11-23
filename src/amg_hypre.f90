@@ -6,6 +6,7 @@
 subroutine amg_hypre_solve(amat,rhs,soln,ia,ja,neqs,nja,icnvg, &
                            in_iter,iter1,hiclose,iout)
   use iso_c_binding, only: c_int, c_double
+  use SMSMODULE, only: AMG_GMRES_RTOL
   use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
   implicit none
   integer, intent(in) :: neqs,nja,ia(neqs+1),ja(nja),iter1,iout
@@ -47,7 +48,7 @@ subroutine amg_hypre_solve(amat,rhs,soln,ia,ja,neqs,nja,icnvg, &
   nit=0
   relres=0d0
   status=mfusg_hypre_solve(int(neqs,c_int),int(nja,c_int),ia,ja,amat, &
-                           rhs,soln,int(iter1,c_int),max(1d-12,min(1d-9,hiclose)), &
+                           rhs,soln,int(iter1,c_int),AMG_GMRES_RTOL, &
                            nit,relres,max_abs_res,rel_l2_res,max_head_change,max_abs_rhs)
   in_iter=int(nit)
   icnvg=0

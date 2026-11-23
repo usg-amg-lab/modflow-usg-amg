@@ -1,22 +1,11 @@
-# Local builds and generated outputs
-*.exe
-*.dll
+obj_mpi/
 *.o
 *.obj
+*.mod
+*.exe
 *.a
-*.lib
-*.pdb
-*.out
-*.hed
-*.hds
-*.cbc
-*.lst
+*.zip
 *.log
 *.tmp
-__pycache__/
-*.pyc
-obj_temp/
-build/
-reference/
-test_dynamic/
-# Client data/models are deliberately not included.
+.DS_Store
+Thumbs.db

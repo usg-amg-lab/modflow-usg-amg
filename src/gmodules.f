@@ -145,6 +145,9 @@ C
 C -------------------------------------------------------------------------------------
       MODULE SMSMODULE
       IMPLICIT NONE
+C     AMG parameters (LINMETH=3); defaults for legacy SMS files.
+      INTEGER, SAVE :: AMG_MPI_PROCESSES = 1
+      DOUBLE PRECISION, SAVE :: AMG_GMRES_RTOL = 1D-9
       DOUBLE PRECISION, PARAMETER :: EPSILON = 1.0E-6
       DOUBLE PRECISION, PARAMETER :: CLOSEZERO = 1.0E-15
       DOUBLE PRECISION, SAVE, POINTER :: Theta

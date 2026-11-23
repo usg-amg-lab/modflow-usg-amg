@@ -1,126 +1,125 @@
-# MODFLOW-USG Serial AMG
+# MODFLOW-USG-AMG
 
-**Version:** v0.1.1-beta (release candidate)
+MODFLOW-USG-AMG is a Windows build of MODFLOW-USG 1.5 with a HYPRE linear solver. For `LINMETH = 3` the program solves the unstructured flow matrix with GMRES and BoomerAMG preconditioning. MPI is used for that linear solve.
 
-**Status:** Under validation. Not yet approved for public release.
+This repository is version 1.0.0. The solver integration is the verified MPI-178 implementation: HYPRE IJ matrix and IJ vector objects are reused when the sparsity pattern is unchanged, and GMRES and BoomerAMG are created for each solver call.
 
-MODFLOW-USG Serial AMG is an independent extension of
-USGS MODFLOW-USG 1.5.00 (27 February 2019).
+## Relationship to USGS MODFLOW-USG
 
-It integrates the hypre 2.33.0 linear solver library,
-using GMRES preconditioned by BoomerAMG.
+The groundwater model is USGS MODFLOW-USG, version 1.5.00 (27 February 2019). The numerical routines of that program are unchanged. This project adds the HYPRE/MPI solver path, the Windows launcher, and the makefile that links them. Those additions are under the MIT License. The USGS code is not relicensed. See `LICENSING.md`.
 
-The new solver is available through LINMETH=3 in the
-MODFLOW-USG SMS package. The original xMD and PCGU
-solver branches are retained.
+## What runs in parallel
 
-## Features
+Rank 0 reads the model, assembles the equations, and writes the results. The other MPI ranks take part in the HYPRE solve. Package formulation, Newton updates, budgets, and output stay on rank 0. MPI does not make the rest of the MODFLOW simulation parallel.
 
-- Serial groundwater flow simulation (no MPI required).
-- GMRES with BoomerAMG preconditioning.
-- Support for MODFLOW-USG unstructured grids.
-- Standalone Windows x64 executable.
-- No external GNU runtime DLLs required.
-- Binary output compatible with standard MODFLOW readers.
-- Original MODFLOW-USG solver options retained.
+On each solver call the integration distributes the CSR matrix and the vectors, writes the current values into HYPRE, calls `HYPRE_ParCSRGMRESSetup`, and solves. If the row partition and the sparsity pattern match the previous call, the IJ matrix and both IJ vectors are kept and their values are replaced. A different pattern creates new IJ objects.
 
-## Version v0.1.1-beta
+A variant that also kept the GMRES and BoomerAMG objects was tested. It was not faster in that test, and it is not this release. BoomerAMG parameters are the ones used for the verified binary. Changing them can change the numerical results.
 
-This release candidate corrects binary input/output
-compatibility with standard MODFLOW readers.
+## Requirements
 
-The src/openspec.inc configuration now uses:
+The published program is a 64-bit Windows application.
 
-    ACCESS='STREAM'
-    FORM='UNFORMATTED'
+- Windows 10 or Windows 11, x64, for the prebuilt executable.
+- Microsoft MPI runtime v10.1.3 (file version 10.1.12498.52). The SDK is not required to run the program.
+- A groundwater model whose SMS file selects this solver, as described below.
 
-This prevents GNU Fortran record markers from being
-included in binary output files.
+Building from source was verified with MSYS2 UCRT64, GCC 16.2.0, and HYPRE 2.33.0 built with MPI. Other compilers, HYPRE versions, and operating systems are not covered by this release.
 
-The change does not modify the GMRES/BoomerAMG
-numerical algorithms.
+## Windows binary
 
-## Validation
+Download `MODFLOW-USG-AMG-Windows-x64.zip` from the GitHub Release v1.0.0. The archive is not part of this source tree.
 
-Three original USGS test models completed successfully:
+SHA-256 of the archive:
 
-- 01A: nested grid without GNC
-- 01B: nested grid with GNC
-- 03: confined conduit model
+```
+4c6f648ed55dd00875120b55d3531701a1fc56986f637a35a47ba9a21faab5b4
+```
 
-All three Stage 4 HDS files were byte-for-byte identical
-to their stored Stage 3 reference results.
+The executable inside it is the verified MPI-178 binary, unmodified:
 
-A private Tizert calibration model completed 31 stress
-periods using the hypre solver.
+```
+da67fe6e96f3550bbed17d7256edbdcd076443c8acbba94f63586b78ec1b3036
+```
 
-GMS 10.8.9 successfully imported the calculated heads
-and main cell-by-cell flow budget without conversion.
+Unzip the archive and leave these files in one directory:
 
-Further validation is required, including additional
-solver configurations, error handling and GMS CCF2 import.
+- `mfusg_amg_mpi.exe`
+- `libquadmath-0.dll`
+- `libgcc_s_seh-1.dll`
+- `libwinpthread-1.dll`
 
-See docs/VALIDATION.md.
+Windows loads the three DLLs from that directory. An MSYS2 installation is not required, and `C:\msys64` does not need to be on `PATH`.
 
-## Repository structure
+### Microsoft MPI runtime
 
-- src/       MODFLOW-USG source code and AMG integration
-- make/      Windows build configuration
-- tests/     USGS regression models and test runner
-- docs/      Build instructions and validation documentation
-- licenses/  Component licensing and redistribution information
+Install the runtime once per machine. From the unpacked archive run:
 
-## Building from source
+```
+redist\msmpisetup.exe
+```
 
-See docs/BUILD_WINDOWS.md.
+The same installer is published by Microsoft as `msmpisetup.exe` for MS-MPI v10.1.3:
 
-The tested environment uses:
+https://www.microsoft.com/en-us/download/details.aspx?id=105289
 
-- MSYS2 UCRT64
-- GNU Fortran / GCC 16.2.0
-- hypre 2.33.0 (serial static build)
+Direct link:
 
-## Distribution
+https://download.microsoft.com/download/7/2/7/72731ebb-b63c-4170-ade7-836966263a8f/msmpisetup.exe
 
-The intended Windows distribution consists of one
-standalone executable:
+Do not install `msmpisdk.msi` unless you are compiling against the MPI headers. The installer copies `mpiexec.exe` to `C:\Program Files\Microsoft MPI\Bin` and `msmpi.dll` to the Windows system directory. Running it displays Microsoft's license terms.
 
-    mfusg_amg.exe
+### Run a model
 
-Because GNU libquadmath is statically linked, separate
-relinking materials are being prepared to support the
-requirements of its LGPL license.
+In the model directory:
 
-See licenses/gnu/LIBQUADMATH.md.
+```
+path\to\MODFLOW-USG-AMG-Windows-x64\mfusg_amg_mpi.exe model.nam
+```
 
-## Licensing
+`run-mfusg.cmd` runs the same executable and reports a missing MPI runtime. If the `AMG` line requests more than one process, the executable starts `mpiexec` itself and returns that process's exit code. The parent process does not open the model files. You may instead launch it with `mpiexec -n N`. `N` must be the process count on the `AMG` line.
 
-This project combines components with different
-licensing and redistribution terms.
+## SMS configuration
 
-- USGS MODFLOW-USG: original attribution retained.
-- hypre 2.33.0: MIT / Apache 2.0 licensing.
-- XMD (Motomu Ibaraki): redistribution permitted
-  subject to preservation of original copyright
-  notice and attribution.
-- GNU libquadmath: LGPL 2.1 or later.
-- Original project additions: MIT license (see licenses/PROJECT_ADDITIONS_MIT.txt).
+The solver option line is:
 
-See the licenses/ directory.
+```
+HCLOSE HICLOSE MXITER ITER1 IPRSMS NONLINMETH LINMETH
+```
 
-## Known limitations
+`LINMETH` 3 selects HYPRE GMRES with BoomerAMG. The following line is read only for that choice:
 
-The GMRES relative tolerance is capped at 1e-9 when
-HICLOSE is larger. This is not equivalent to a
-physical head-change tolerance.
+```
+AMG <processes> <gmres_rtol>
+```
 
-Further testing is required before the software
-is considered production-ready across the full
-range of MODFLOW-USG model configurations.
+Example:
 
-## Disclaimer
+```
+0.01 0.1 500 100 0 2 3
+AMG 8 1.0e-11
+```
 
-This is an independent project. It is not affiliated
-with, endorsed by, or maintained by the USGS.
+- `<processes>` is an integer from 1 to 256 and is the MPI process count.
+- `<gmres_rtol>` is the relative tolerance passed to GMRES, from `1e-15` to `1e-2`.
+- `ITER1` is the GMRES iteration limit.
+- `HCLOSE` remains the outer head closure used by SMS.
+- `HICLOSE` is not passed to GMRES.
 
-The software is provided for testing and evaluation.
+Without an `AMG` line the integration uses 1 process and a GMRES tolerance of `1e-9`. For one process the executable does not start `mpiexec`.
+
+## Build from source
+
+The verified build environment is an MSYS2 UCRT64 shell with `gfortran`, GNU Make, and the package `mingw-w64-ucrt-x86_64-msmpi`. That package provides `mpicc` and `/ucrt64/lib/libmsmpi.dll.a`, which the makefile uses. HYPRE is not included. Install HYPRE 2.33.0 yourself as a static library built with MPI (`HYPRE_HAVE_MPI`), then from `make/`:
+
+```
+make -f makefile.mpi -j1 HYPRE_PREFIX=/path/to/hypre-2.33.0/install-mpi
+```
+
+`HYPRE_PREFIX` is required. A serial HYPRE library will not link or run this solver. The makefile links `libHYPRE.a`, `libgfortran`, and `libgcc` statically and links MS-MPI through its import library. Objects go to `make/obj_mpi/`, which is gitignored. A new link of these sources can differ from the published executable in the PE timestamp and checksum even when the code is the same. The executable attached to the v1.0.0 release is the verified binary, not a fresh local link.
+
+## Tests and limitations
+
+On the development machine, USGS test 01A produced `flow.hds` and `flow.cbc` byte for byte equal to the MPI-178 reference when run with this executable. The same Windows package later passed the 01A regression test on a separate Lenovo Yoga 7 computer that did not have MSYS2 or HYPRE installed.
+
+This release does not claim a speedup, a Linux or macOS port, or compatibility with other HYPRE versions. BoomerAMG options are unchanged from the verified build. The Windows package still requires the Microsoft MPI runtime. Source builds require the MSYS2 UCRT64 toolchain described above.

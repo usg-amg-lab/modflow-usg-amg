@@ -41,6 +41,9 @@ C
      &           37*'    '/
 C     ------------------------------------------------------------------
 C
+C-------INITIALIZE MPI; WORKER RANKS ENTER SERVICE LOOP.
+      CALL MFUSG_MPI_BEGIN()
+C
 C2------WRITE BANNER TO SCREEN AND DEFINE CONSTANTS.
       WRITE (*,1) MFVNAM,VERSION
     1 FORMAT (/,34X,'MODFLOW',A,/,
@@ -440,6 +443,8 @@ C10-----END OF PROGRAM.
       ELSE
         WRITE(*,*) ' Normal termination of simulation'
       END IF
+      CALL MFUSG_MPI_END()
+      CALL MFUSG_MPI_CHECK_CONVERGENCE(ICNVG)
       CALL USTOP(' ')
 C
       END
